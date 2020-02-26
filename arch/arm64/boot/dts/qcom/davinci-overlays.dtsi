@@ -1,0 +1,409 @@
+/* Copyright (c) 2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "davinci-sdmmagpie-pinctrl-overlay.dtsi"
+
+#include "sdmmagpie-sde-display.dtsi"
+#include "dsi-panel-ss-fhd-ea-f10-cmd.dtsi"
+#include "dsi-panel-ss-fhd-eb-f10-cmd.dtsi"
+#include "dsi-panel-tianma-fhd-nt36672a-video.dtsi"
+#include "dsi-panel-tianma-fhd-ft8719-video.dtsi"
+
+/* pm6150.dtsi overlays START */
+&spmi_bus {
+	qcom,pm6150@0 {
+		qcom,power-on@800 {
+			interrupts = <0x0 0x8 0x0 IRQ_TYPE_NONE>,
+				   <0x0 0x8 0x1 IRQ_TYPE_NONE>,
+				   <0x0 0x8 0x4 IRQ_TYPE_NONE>,
+				   <0x0 0x8 0x5 IRQ_TYPE_NONE>;
+			interrupt-names = "kpdpwr", "resin",
+					"resin-bark", "kpdpwr-resin-bark";
+			qcom,pon-dbc-delay = <62500>;
+
+			qcom,pon_1 {
+				qcom,support-reset = <1>;
+				qcom,pull-up = <1>;
+
+				qcom,s1-timer = <4480>;
+				qcom,s2-timer = <2000>;
+				qcom,s2-type = <0x7>;
+			};
+
+			qcom,pon_3 {
+				qcom,pon-type = <PON_POWER_ON_TYPE_KPDPWR_RESIN>;
+				qcom,support-reset = <1>;
+				qcom,pull-up = <1>;
+				qcom,s1-timer = <1352>;
+				qcom,s2-timer = <2000>;
+				qcom,s2-type = <0x1>;
+				qcom,use-bark;
+			};
+		};
+	};
+
+	soc {
+		disable-thermal-zone;
+	};
+};
+
+&pm6150_qg {
+	qcom,vbatt-cutoff-mv = <3400>;
+
+	qcom,vbatt-empty-mv = <3100>;
+	qcom,vbatt-empty-cold-mv = <3100>;
+};
+/* pm6150.dtsi overlays END */
+
+/* pm6150l.dtsi overlays START */
+&spmi_bus {
+	qcom,pm6150l@5 {
+		flash_led {
+			/* Added by qudao1@xiaomi.com */
+			pm6150l_flashlight: qcom,flashlight {
+				label = "flash";
+				qcom,led-name = "flashlight";
+				qcom,max-current = <750>;
+				qcom,default-led-trigger = "flashlight_trigger";
+				qcom,id = <3>;
+				qcom,current-ma = <500>;
+				qcom,duration-ms = <1280>;
+				qcom,ires-ua = <12500>;
+				qcom,hdrm-voltage-mv = <325>;
+				qcom,hdrm-vol-hi-lo-win-mv = <100>;
+			};
+			/* End of Added by qudao1@xiaomi.com */
+		};
+
+		/* Added by qudao1@xiaomi.com */
+		pm6150l_pwm: qcom,pwms@bc00 {
+			compatible = "qcom,pwm-lpg";
+			reg = <0xbc00 0x200>;
+			reg-names = "lpg-base";
+			#pwm-cells = <2>;
+			qcom,num-lpg-channels = <2>;
+			status = "disabled";
+		};
+		/* End of Added by qudao1@xiaomi.com */
+	};
+};
+
+&pm6150l_lpg {
+	/delete-node/ lpg2;
+	pwm_lpg2:lpg2 {
+		qcom,lpg-chan-id = <2>;
+		qcom,ramp-step-ms = <100>;
+		qcom,ramp-pause-hi-count = <2>;
+		qcom,ramp-pause-lo-count = <2>;
+		qcom,ramp-low-index = <0>;
+		qcom,ramp-high-index = <20>;
+		qcom,ramp-from-low-to-high;
+		qcom,ramp-pattern-repeat;
+	};
+
+	/delete-node/ lpg3;
+	pwm_lpg3:lpg3 {
+		qcom,lpg-chan-id = <3>;
+		qcom,ramp-step-ms = <100>;
+		qcom,ramp-pause-hi-count = <2>;
+		qcom,ramp-pause-lo-count = <2>;
+		qcom,ramp-low-index = <0>;
+		qcom,ramp-high-index = <20>;
+		qcom,ramp-from-low-to-high;
+		qcom,ramp-pattern-repeat;
+	};
+};
+/* pm6150l.dtsi overlays END */
+
+/* sdmmagpie-camera.dtsi overlays START */
+&cam_csiphy3 {
+	clocks = <&clock_camcc CAM_CC_CPHY_RX_CLK_SRC>,
+		<&clock_camcc CAM_CC_CSIPHY0_CLK>,
+		/* Modified by qudao1@xiaomi.com */
+		<&clock_camcc CAM_CC_CSIPHY3_CLK>,
+		<&clock_camcc CAM_CC_CSI3PHYTIMER_CLK_SRC>,
+		<&clock_camcc CAM_CC_CSI3PHYTIMER_CLK>;
+		/* End of Modified by qudao1@xiaomi.com */
+};
+/* sdmmagpie-camera.dtsi overlays END */
+
+
+/* sdmmagpie-regulator.dtsi overlays START */
+&soc {
+	rpmh-regulator-ldoa16 {
+		L16A: pm6150_l16: regulator-pm6150-l16 {
+			regulator-name = "pm6150_l16";
+			qcom,set = <RPMH_REGULATOR_SET_ALL>;
+			regulator-min-microvolt = <1800000>; //Modified by qudao1@xiaomi.com
+			regulator-max-microvolt = <2976000>;
+			qcom,init-voltage = <1800000>; //Modified by qudao1@xiaomi.com
+			qcom,init-mode = <RPMH_REGULATOR_MODE_LPM>;
+		};
+	};
+};
+/* sdmmagpie-regulator.dtsi overlays END */
+
+/* sdmmagpie-sde-display.dtsi overlays START */
+&soc {
+	dsi_ss_fhd_ea_f10_cmd_display: qcom,dsi-display@17 {
+		label = "dsi_ss_fhd_ea_f10_cmd_display";
+		qcom,display-type = "primary";
+
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+
+		qcom,dsi-panel = <&dsi_ss_fhd_ea_f10_cmd>;
+	};
+
+	dsi_ss_fhd_eb_f10_cmd_display: qcom,dsi-display@18 {
+
+		label = "dsi_ss_fhd_eb_f10_cmd_display";
+		qcom,display-type = "primary";
+
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+
+		qcom,dsi-panel = <&dsi_ss_fhd_eb_f10_cmd>;
+	};
+};
+
+&dsi_panel_pwr_supply_labibb_amoled {
+		qcom,panel-supply-entry@0 {
+		qcom,supply-min-voltage = <1880000>;
+		qcom,supply-max-voltage = <1880000>;
+	};
+};
+
+&sde_dsi {
+	qcom,dsi-display-list =
+		<&dsi_sw43404_amoled_video_display
+		&dsi_sw43404_amoled_cmd_display
+		&dsi_sw43404_amoled_fhd_plus_cmd_display
+		&dsi_sim_vid_display
+		&dsi_dual_sim_vid_display
+		&dsi_sim_cmd_display
+		&dsi_dual_sim_cmd_display
+		&dsi_sim_dsc_375_cmd_display
+		&dsi_dual_sim_dsc_375_cmd_display
+		&dsi_dual_sharp_wqhd_video_display
+		&dsi_dual_sharp_wqhd_cmd_display
+		&dsi_rm69298_truly_amoled_vid_display
+		&dsi_rm69298_truly_amoled_cmd_display
+		&dsi_nt35695b_truly_fhd_video_display
+		&dsi_nt35695b_truly_fhd_cmd_display
+		&dsi_ss_fhd_ea_f10_cmd_display
+		&dsi_ss_fhd_eb_f10_cmd_display>;
+};
+
+&dsi_ss_fhd_ea_f10_cmd {
+	qcom,mdss-dsi-t-clk-post = <0x0F>;
+	qcom,mdss-dsi-t-clk-pre = <0x37>;
+
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings = [00 24 0A 0A 26 25 09
+			    0A 06 02 04 00];
+			qcom,display-topology = <1 0 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
+};
+
+&dsi_ss_fhd_eb_f10_cmd {
+	qcom,mdss-dsi-t-clk-post = <0x0F>;
+	qcom,mdss-dsi-t-clk-pre = <0x37>;
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings = [00 24 0A 0A 26 25 09
+			    0A 06 02 04 00];
+			qcom,display-topology = <1 0 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
+};
+/* sdmmagpie-sde-display.dtsi overlays END */
+
+/* sdmmagpie-thermal.dtsi overlays START */
+&thermal_zones {
+	/delete-node/ xo-therm-adc;
+	/delete-node/ rf-pa0-therm-adc;
+	/delete-node/ rf-pa1-therm-adc;
+	/delete-node/ quiet-therm-adc;
+	/delete-node/ conn-therm-adc;
+	/delete-node/ camera-ftherm-adc;
+	/delete-node/ nvm-therm-adc;
+	/delete-node/ quiet-therm-step;
+};
+/* sdmmagpie-thermal.dtsi overlays END */
+
+/* sdmmagpie.dtsi overlays START */
+&firmware {
+	android {
+		compatible = "android,firmware";
+		vbmeta {
+			compatible = "android,vbmeta";
+			parts = "vbmeta,boot,system,vendor,dtbo,recovery";
+		};
+		fstab {
+			compatible = "android,fstab";
+			vendor {
+				compatible = "android,vendor";
+				dev = "/dev/block/platform/soc/1d84000.ufshc/by-name/vendor";
+				type = "ext4";
+				mnt_flags = "ro,barrier=1,discard";
+				fsmgr_flags = "wait,avb";
+				status = "ok";
+			};
+		};
+	};
+};
+
+&pil_adsp_mem {
+	reg = <0 0x95100000 0 0x2600000>;
+};
+
+/ {
+	reserved-memory {
+		/delete-node/ wlan_msa_region@96f00000;
+		wlan_msa_mem: wlan_msa_region@97700000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97700000 0 0x180000>;
+		};
+
+		/delete-node/ npu_region@97080000;
+		npu_mem: npu_region@97880000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97880000 0 0x80000>;
+		};
+
+		/delete-node/ ips_fw_region@97100000;
+		pil_ipa_fw_mem: ips_fw_region@97900000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97900000 0 0x10000>;
+		};
+
+		/delete-node/ ipa_gsi_region@97110000;
+		pil_ipa_gsi_mem: ipa_gsi_region@97910000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97910000 0 0x5000>;
+		};
+
+		/delete-node/ gpu_region@97115000;
+		pil_gpu_mem: gpu_region@97915000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0 0x97915000 0 0x2000>;
+		};
+	};
+};
+
+&wdog {
+	qcom,bark-time = <20000>;
+	qcom,pet-time = <15000>;
+};
+
+&ufshc_mem {
+	spm-level = <3>;
+};
+
+&pm6150_vadc {
+	/delete-node/ rf_pa0_therm;
+	/delete-node/ rf_pa1_therm;
+	/delete-node/ quiet_therm;
+};
+
+&pm6150_adc_tm {
+	/delete-property/ io-channels;
+	/delete-node/ xo_therm;
+	/delete-node/ rf_pa0_therm;
+	/delete-node/ rf_pa1_therm;
+	/delete-node/ quiet_therm;
+};
+
+&pm6150l_vadc {
+	/delete-property/ io-channels;
+	/delete-property/ pinctrl-0;
+	/delete-node/ conn_therm;
+	/delete-node/ smb_therm;
+	/delete-node/ camera_ftherm;
+	/delete-node/ nvm_therm;
+};
+
+&pm6150l_gpios {
+	/delete-node/ nvm_therm;
+	/delete-node/ conn_therm;
+	/delete-node/ camera_ftherm;
+	/delete-node/ nvm_therm;
+};
+
+&pm6150l_adc_tm {
+	/delete-property/ io-channels;
+	/delete-node/ conn_therm;
+	/delete-node/ camera_ftherm;
+	/delete-node/ nvm_therm;
+};
+/* sdmmagpie.dtsi overlays END */
+
+/* sm6150-audio-overlay.dtsi overlays START */
+&swr2 {
+	qcom,swr-mstr-tx-wakeup-capable;
+};
+/* sm6150-audio-overlay.dtsi overlays END */
+
+/* sm6150-audio.dtsi overlays START */
+&sm6150_snd {
+	asoc-cpu-names = "msm-dai-q6-dp.24608",
+		"msm-dai-q6-mi2s.0", "msm-dai-q6-mi2s.1",
+		"msm-dai-q6-mi2s.2", "msm-dai-q6-mi2s.3",
+		"msm-dai-q6-mi2s.4", "msm-dai-q6-auxpcm.1",
+		"msm-dai-q6-auxpcm.2", "msm-dai-q6-auxpcm.3",
+		"msm-dai-q6-auxpcm.4", "msm-dai-q6-auxpcm.5",
+		"msm-dai-q6-dev.224",
+		"msm-dai-q6-dev.225", "msm-dai-q6-dev.241",
+		"msm-dai-q6-dev.240", "msm-dai-q6-dev.32771",
+		"msm-dai-q6-dev.32772", "msm-dai-q6-dev.32773",
+		"msm-dai-q6-dev.32770", "msm-dai-q6-dev.16398",
+		"msm-dai-q6-dev.16399", "msm-dai-q6-dev.16401",
+		"msm-dai-q6-dev.16400",
+		"msm-dai-q6-dev.28672", "msm-dai-q6-dev.28673",
+		"msm-dai-q6-tdm.36864", "msm-dai-q6-tdm.36865",
+		"msm-dai-q6-tdm.36880", "msm-dai-q6-tdm.36881",
+		"msm-dai-q6-tdm.36896", "msm-dai-q6-tdm.36897",
+		"msm-dai-q6-tdm.36912", "msm-dai-q6-tdm.36913",
+		"msm-dai-q6-tdm.36928", "msm-dai-q6-tdm.36929",
+		"msm-dai-cdc-dma-dev.45056",
+		"msm-dai-cdc-dma-dev.45057",
+		"msm-dai-cdc-dma-dev.45058",
+		"msm-dai-cdc-dma-dev.45059",
+		"msm-dai-cdc-dma-dev.45061",
+		"msm-dai-cdc-dma-dev.45104",
+		"msm-dai-cdc-dma-dev.45105",
+		"msm-dai-cdc-dma-dev.45106",
+		"msm-dai-cdc-dma-dev.45107",
+		"msm-dai-cdc-dma-dev.45108",
+		"msm-dai-cdc-dma-dev.45109",
+		"msm-dai-cdc-dma-dev.45110",
+		"msm-dai-cdc-dma-dev.45111",
+		"msm-dai-cdc-dma-dev.45112",
+		"msm-dai-cdc-dma-dev.45113",
+		"msm-dai-cdc-dma-dev.45114",
+		"msm-dai-cdc-dma-dev.45115",
+		"msm-dai-cdc-dma-dev.45116",
+		"msm-dai-cdc-dma-dev.45118";
+};
+/* sm6150-audio.dtsi overlays END */
